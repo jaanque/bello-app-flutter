@@ -54,10 +54,12 @@ export default function VideoGrid({ videos, onVideoPress, onDeleteVideo }: Video
 
   return (
     <View style={styles.container}>
-      {videos.map((video) => (
-        <View key={video.id} style={styles.videoItem}>
-          <TouchableOpacity
-            style={styles.videoTouchable}
+      {videos.map((video) => {
+        // console.log('VideoGrid: Rendering video ID:', video.id, 'with thumbnailUrl:', video.thumbnailUrl);
+        return (
+          <View key={video.id} style={styles.videoItem}>
+            <TouchableOpacity
+              style={styles.videoTouchable}
             onPress={() => onVideoPress(video)}
             activeOpacity={0.8}
           >
@@ -100,7 +102,8 @@ export default function VideoGrid({ videos, onVideoPress, onDeleteVideo }: Video
             </TouchableOpacity>
           )}
         </View>
-      ))}
+        );
+      })}
     </View>
   );
 }

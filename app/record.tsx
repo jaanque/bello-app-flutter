@@ -11,7 +11,7 @@ import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { router } from 'expo-router';
 import { VideoStorage } from '@/utils/storage';
 import * as FileSystem from 'expo-file-system';
-import { generateThumbnailAsync } from 'expo-video-thumbnails';
+import * as VideoThumbnails from 'expo-video-thumbnails';
 import { X, RotateCcw, Circle, Square } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Platform } from 'react-native';
@@ -22,11 +22,11 @@ export default function RecordScreen() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const cameraRef = useRef<CameraView>(null);
-  const recordingInterval = useRef<NodeJS.Timeout>();
+  const recordingInterval = useRef<number | null>(null);
 
   useEffect(() => {
     return () => {
-      if (recordingInterval.current) {
+      if (recordingInterval.current !== null) {
         clearInterval(recordingInterval.current);
       }
     };
@@ -42,16 +42,16 @@ export default function RecordScreen() {
           }
           return prev + 1;
         });
-      }, 1000);
+      }, 1000) as unknown as number; // Cast to number for setInterval return type
     } else {
-      if (recordingInterval.current) {
+      if (recordingInterval.current !== null) {
         clearInterval(recordingInterval.current);
       }
       setRecordingTime(0);
     }
 
     return () => {
-      if (recordingInterval.current) {
+      if (recordingInterval.current !== null) {
         clearInterval(recordingInterval.current);
       }
     };
@@ -93,7 +93,6 @@ export default function RecordScreen() {
       setIsRecording(true);
       const video = await cameraRef.current.recordAsync({
         maxDuration: 10,
-        quality: '720p',
       });
 
       if (video) {
@@ -131,7 +130,7 @@ export default function RecordScreen() {
       // Generate thumbnail
       // console.log('Generating thumbnail for video URI:', uri);
       const videoId = uri.split('/').pop()?.split('.')[0] || `vid-${Date.now()}`; // Generate a somewhat unique ID from URI
-      const { uri: generatedThumbnailUri } = await generateThumbnailAsync(
+      const { uri: generatedThumbnailUri } = await VideoThumbnails.getThumbnailAsync(
         uri,
         { time: 1000 } // Generate thumbnail at 1 second
       );
@@ -227,6 +226,7 @@ export default function RecordScreen() {
         style={styles.camera}
         facing={facing}
         mode="video"
+        videoQuality="720p"
       >
         <View style={styles.overlay}>
           {/* Timer */}

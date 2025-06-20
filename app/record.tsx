@@ -10,6 +10,8 @@ import {
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { router } from 'expo-router';
 import { VideoStorage } from '@/utils/storage';
+import * as FileSystem from 'expo-file-system';
+import { generateThumbnailAsync } from 'expo-video-thumbnails';
 import { X, RotateCcw, Circle, Square } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Platform } from 'react-native';
@@ -123,8 +125,36 @@ export default function RecordScreen() {
     const now = new Date();
     const date = now.toISOString().split('T')[0];
     const time = now.toTimeString().split(' ')[0].substring(0, 5);
+    let thumbnailUrl: string | undefined = undefined;
 
-    const saved = await VideoStorage.saveVideo(uri, date, time);
+    try {
+      // Generate thumbnail
+      const videoId = uri.split('/').pop()?.split('.')[0] || `vid-${Date.now()}`; // Generate a somewhat unique ID from URI
+      const { uri: generatedThumbnailUri } = await generateThumbnailAsync(
+        uri,
+        { time: 1000 } // Generate thumbnail at 1 second
+      );
+
+      // Create thumbnails directory if it doesn't exist
+      const thumbnailsDir = FileSystem.documentDirectory + 'thumbnails/';
+      await FileSystem.makeDirectoryAsync(thumbnailsDir, { intermediates: true });
+
+      // Save thumbnail
+      const thumbnailFilename = `thumb-${videoId}.jpg`;
+      const newThumbnailPath = thumbnailsDir + thumbnailFilename;
+      await FileSystem.copyAsync({
+        from: generatedThumbnailUri,
+        to: newThumbnailPath,
+      });
+      thumbnailUrl = newThumbnailPath;
+
+    } catch (error) {
+      console.error('Error generating or saving thumbnail:', error);
+      // Optionally, inform the user that thumbnail generation failed
+      // but proceed with saving the video without a thumbnail.
+    }
+
+    const saved = await VideoStorage.saveVideo(uri, date, time, thumbnailUrl);
     
     if (saved) {
       Alert.alert(

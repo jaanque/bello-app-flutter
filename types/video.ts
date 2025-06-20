@@ -8,6 +8,7 @@ export interface VideoRecord {
   isRecap?: boolean;
   recapType?: 'weekly' | 'monthly';
   createdAt: number; // timestamp
+  thumbnailUrl?: string; // Optional URI for the video thumbnail
 }
 
 export interface RecapVideo extends VideoRecord {

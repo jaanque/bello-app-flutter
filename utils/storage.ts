@@ -16,7 +16,7 @@ export class VideoStorage {
     }
   }
 
-  static async saveVideo(uri: string, date: string, time: string): Promise<VideoRecord | null> {
+  static async saveVideo(uri: string, date: string, time: string, thumbnailUrl?: string): Promise<VideoRecord | null> {
     try {
       await this.initializeStorage();
       
@@ -36,6 +36,7 @@ export class VideoStorage {
         filepath,
         duration: 0, // Se actualizará cuando se reproduzca
         createdAt: Date.now(),
+        thumbnailUrl, // Add thumbnailUrl here
       };
 
       await this.updateMetadata(videoRecord);
@@ -102,6 +103,19 @@ export class VideoStorage {
       const fileExists = await FileSystem.getInfoAsync(video.filepath);
       if (fileExists.exists) {
         await FileSystem.deleteAsync(video.filepath);
+      }
+
+      // Eliminar thumbnail si existe
+      if (video.thumbnailUrl) {
+        try {
+          const thumbnailExists = await FileSystem.getInfoAsync(video.thumbnailUrl);
+          if (thumbnailExists.exists) {
+            await FileSystem.deleteAsync(video.thumbnailUrl);
+          }
+        } catch (thumbError) {
+          console.error('Error deleting thumbnail:', thumbError);
+          // No impedir la eliminación del video si falla la del thumbnail
+        }
       }
 
       // Actualizar metadata

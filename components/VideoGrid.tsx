@@ -62,9 +62,13 @@ export default function VideoGrid({ videos, onVideoPress, onDeleteVideo }: Video
             activeOpacity={0.8}
           >
             <View style={styles.thumbnail}>
-              <View style={styles.thumbnailPlaceholder}>
-                <Play size={24} color="#666" />
-              </View>
+              {video.thumbnailUrl ? (
+                <Image source={{ uri: video.thumbnailUrl }} style={styles.thumbnailImage} />
+              ) : (
+                <View style={styles.thumbnailPlaceholder}>
+                  <Play size={24} color="#666" />
+                </View>
+              )}
               
               <View style={styles.videoInfo}>
                 <Text style={styles.videoDate}>
@@ -148,6 +152,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f0f0f0',
+  },
+  thumbnailImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   videoInfo: {
     position: 'absolute',

@@ -128,34 +128,26 @@ export default function RecordScreen() {
 
     try {
       // Generate thumbnail
-      // console.log('Generating thumbnail for video URI:', uri);
-      const videoId = uri.split('/').pop()?.split('.')[0] || `vid-${Date.now()}`; // Generate a somewhat unique ID from URI
+      const videoId = uri.split('/').pop()?.split('.')[0] || `vid-${Date.now()}`;
       const { uri: generatedThumbnailUri } = await VideoThumbnails.getThumbnailAsync(
         uri,
-        { time: 1000 } // Generate thumbnail at 1 second
+        { time: 1000 }
       );
-      // console.log('Thumbnail generated URI:', generatedThumbnailUri);
 
-      // Create thumbnails directory if it doesn't exist
       const thumbnailsDir = FileSystem.documentDirectory + 'thumbnails/';
-      // console.log('Ensuring thumbnails directory exists:', thumbnailsDir);
       await FileSystem.makeDirectoryAsync(thumbnailsDir, { intermediates: true });
 
-      // Save thumbnail
       const thumbnailFilename = `thumb-${videoId}.jpg`;
       const newThumbnailPath = thumbnailsDir + thumbnailFilename;
-      // console.log('Copying thumbnail from:', generatedThumbnailUri, 'to:', newThumbnailPath);
       await FileSystem.copyAsync({
         from: generatedThumbnailUri,
         to: newThumbnailPath,
       });
-      // console.log('Thumbnail copied successfully to:', newThumbnailPath);
       thumbnailUrl = newThumbnailPath;
 
     } catch (error) {
       console.error('Detailed error during thumbnail generation/saving:', error);
       console.warn('Thumbnail generation failed. Video will be saved without a thumbnail.');
-      // thumbnailUrl remains undefined, so the video saves without it.
     }
 
     const saved = await VideoStorage.saveVideo(uri, date, time, thumbnailUrl);
@@ -221,13 +213,16 @@ export default function RecordScreen() {
         </TouchableOpacity>
       </View>
 
-      <CameraView
-        ref={cameraRef}
-        style={styles.camera}
-        facing={facing}
-        mode="video"
-        videoQuality="720p"
-      >
+      {/* Camera and Overlay Container */}
+      <View style={styles.cameraContainer}>
+        <CameraView
+          ref={cameraRef}
+          style={styles.camera}
+          facing={facing}
+          mode="video"
+          videoQuality="720p"
+        />
+        {/* Overlay elements are now absolutely positioned on top of CameraView */}
         <View style={styles.overlay}>
           {/* Timer */}
           <View style={styles.timerContainer}>
@@ -242,15 +237,15 @@ export default function RecordScreen() {
 
           {/* Progress Bar */}
           <View style={styles.progressContainer}>
-            <View 
+            <View
               style={[
                 styles.progressBar,
                 { width: `${(recordingTime / 10) * 100}%` }
-              ]} 
+              ]}
             />
           </View>
         </View>
-      </CameraView>
+      </View>
 
       <View style={styles.controls}>
         <View style={styles.controlsContent}>
@@ -342,8 +337,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  camera: {
+  cameraContainer: { // Added
     flex: 1,
+    position: 'relative',
+  },
+  camera: {
+    // flex: 1, // Original - replaced by absoluteFillObject
+    ...StyleSheet.absoluteFillObject, // Changed
   },
   overlay: {
     position: 'absolute',
@@ -351,6 +351,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: 20,
+    zIndex: 1, // Added to ensure it's on top
   },
   timerContainer: {
     flexDirection: 'row',

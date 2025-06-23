@@ -7,6 +7,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import theme from '@/styles/theme'; // Import theme
+import * as Haptics from 'expo-haptics'; // Import Haptics
 
 interface MonthSelectorProps {
   currentMonth: number;
@@ -24,7 +26,8 @@ export default function MonthSelector({
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
 
-  const goToPreviousMonth = () => {
+  const handlePreviousMonth = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (currentMonth === 1) {
       onMonthChange(12, currentYear - 1);
     } else {
@@ -32,7 +35,8 @@ export default function MonthSelector({
     }
   };
 
-  const goToNextMonth = () => {
+  const handleNextMonth = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const now = new Date();
     const isCurrentMonth = currentMonth === now.getMonth() + 1 && currentYear === now.getFullYear();
     
@@ -54,10 +58,11 @@ export default function MonthSelector({
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.navButton}
-        onPress={goToPreviousMonth}
+        style={styles.arrowButton}
+        onPress={handlePreviousMonth}
         activeOpacity={0.7}
       >
-        <ChevronLeft size={24} color="#000" />
+        <ChevronLeft size={24} color={theme.colors.primary} />
       </TouchableOpacity>
 
       <View style={styles.monthContainer}>
@@ -67,14 +72,14 @@ export default function MonthSelector({
       </View>
 
       <TouchableOpacity
-        style={[styles.navButton, isNextDisabled() && styles.disabledButton]}
-        onPress={goToNextMonth}
+        style={[styles.arrowButton, isNextDisabled() && styles.disabledButton]}
+        onPress={handleNextMonth}
         disabled={isNextDisabled()}
         activeOpacity={0.7}
       >
         <ChevronRight 
           size={24} 
-          color={isNextDisabled() ? '#ccc' : '#000'} 
+          color={isNextDisabled() ? theme.colors.mediumGray : theme.colors.primary}
         />
       </TouchableOpacity>
     </View>
@@ -86,28 +91,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: '#fff',
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    backgroundColor: theme.colors.background, // Or theme.colors.lightGray if on a different bg
   },
-  navButton: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 22,
-    backgroundColor: '#f5f5f5',
+  arrowButton: { // Renamed from navButton and simplified
+    padding: theme.spacing.sm, // Ensure decent tap area, no fixed size or bg unless specified
   },
   disabledButton: {
-    backgroundColor: '#f9f9f9',
+    // For future: could change opacity of the icon itself if no background
+    // For now, the color change in ChevronRight handles this
   },
   monthContainer: {
     flex: 1,
     alignItems: 'center',
   },
   monthText: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-    color: '#000',
+    fontFamily: theme.typography.fonts.semiBold,
+    fontSize: theme.typography.fontSizes.lg, // Can be .xl if a larger title is preferred
+    color: theme.colors.text,
   },
 });

@@ -7,6 +7,8 @@ import {
 } from 'react-native';
 import { Camera, Clock } from 'lucide-react-native';
 import { VideoStorage } from '@/utils/storage';
+import theme from '@/styles/theme'; // Import theme
+import * as Haptics from 'expo-haptics'; // Import Haptics
 
 interface RecordButtonProps {
   onPress: () => void;
@@ -45,6 +47,13 @@ export default function RecordButton({ onPress }: RecordButtonProps) {
     setTimeUntilNext(`${hours}h ${minutes}m`);
   };
 
+  const handlePress = () => {
+    if (!hasRecordedToday) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      onPress();
+    }
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -52,15 +61,15 @@ export default function RecordButton({ onPress }: RecordButtonProps) {
           styles.button,
           hasRecordedToday ? styles.disabledButton : styles.activeButton
         ]}
-        onPress={hasRecordedToday ? undefined : onPress}
+        onPress={handlePress}
         disabled={hasRecordedToday}
-        activeOpacity={hasRecordedToday ? 1 : 0.8}
+        activeOpacity={hasRecordedToday ? 1 : 0.7} // Standard active opacity for enabled state
       >
         <View style={styles.content}>
           {hasRecordedToday ? (
-            <Clock size={24} color="#999" />
+            <Clock size={24} color={theme.colors.secondary} />
           ) : (
-            <Camera size={24} color="#fff" />
+            <Camera size={24} color={theme.colors.white} />
           )}
           
           <Text style={[
@@ -80,39 +89,41 @@ export default function RecordButton({ onPress }: RecordButtonProps) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
+    paddingHorizontal: theme.spacing.md,
+    paddingBottom: theme.spacing.xl, // Ensure enough space if it's at the bottom
   },
   button: {
-    borderRadius: 16,
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
+    borderRadius: theme.radii.lg, // Softer, more iOS like radius
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    shadowColor: theme.colors.black,
+    shadowOffset: { width: 0, height: 2 }, // More subtle shadow
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5, // Adjusted elevation
   },
   activeButton: {
-    backgroundColor: '#000',
+    backgroundColor: theme.colors.red, // Prominent red for active recording action
   },
   disabledButton: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme.colors.lightGray, // Muted background for disabled state
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    gap: theme.spacing.sm, // Use theme spacing for gap
   },
   text: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
+    ...theme.typography.textStyles.button, // Use button text style from theme
+    fontSize: theme.typography.fontSizes.md, // Ensure base size or slightly larger
   },
   activeText: {
-    color: '#fff',
+    color: theme.colors.white, // White text on red background
+    fontFamily: theme.typography.fonts.medium, // Ensure medium font for active
   },
   disabledText: {
-    color: '#999',
+    color: theme.colors.secondary, // Secondary color for disabled text
+    fontFamily: theme.typography.fonts.regular, // Regular font for disabled
   },
 });

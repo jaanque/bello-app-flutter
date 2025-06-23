@@ -13,6 +13,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { VideoStorage } from '@/utils/storage';
 import { NotificationManager } from '@/utils/notifications';
 import { RecapGenerator } from '@/utils/recap';
+import { View, StyleSheet } from 'react-native'; // Import View and StyleSheet
+import theme from '@/styles/theme'; // Import the new theme
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -50,12 +52,20 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <View style={styles.container}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="dark" />
-    </>
+    </View>
   );
 }
+
+// Add StyleSheet for the container
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background, // Use theme background color
+  },
+});

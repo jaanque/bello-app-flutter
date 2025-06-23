@@ -8,7 +8,7 @@ import {
   SafeAreaView,
   Alert,
 } from 'react-native';
-import { AVPlaybackStatus, Video, ResizeMode } from 'expo-av';
+import { VideoView, useVideoPlayer } from 'expo-video';
 import { VideoRecord } from '@/types/video';
 import { X, Share } from 'lucide-react-native';
 import * as Sharing from 'expo-sharing';
@@ -22,9 +22,12 @@ interface VideoPlayerProps {
 }
 
 export default function VideoPlayer({ video, visible, onClose }: VideoPlayerProps) {
-  const [status, setStatus] = useState<AVPlaybackStatus>({} as AVPlaybackStatus);
-
   if (!video) return null;
+
+  const player = useVideoPlayer(video.filepath, (player) => {
+    player.loop = true;
+    player.play();
+  });
 
   const triggerShareHaptics = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -99,13 +102,12 @@ export default function VideoPlayer({ video, visible, onClose }: VideoPlayerProp
         </View>
 
         <View style={styles.videoContainer}>
-          <Video
-            source={{ uri: video.filepath }}
+          <VideoView
+            player={player}
             style={styles.video}
-            shouldPlay
-            isLooping
-            resizeMode={ResizeMode.CONTAIN}
-            onPlaybackStatusUpdate={setStatus}
+            contentFit="contain"
+            allowsFullscreen
+            allowsPictureInPicture
           />
         </View>
 

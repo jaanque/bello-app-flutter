@@ -8,7 +8,10 @@ export class RecapGenerator {
       // Por ahora, crearemos un placeholder
       const mockRecapUri = 'mock://weekly-recap';
       
-      return await VideoStorage.saveRecap(mockRecapUri, 'weekly', year, weekNumber);
+      // return await VideoStorage.saveRecap(mockRecapUri, 'weekly', year, weekNumber);
+      // TODO: Implement actual video merging for weekly recaps
+      console.warn(`Skipping weekly recap generation for week ${weekNumber}, year ${year}: Video merging not implemented.`);
+      return null;
     } catch (error) {
       console.error('Error generating weekly recap:', error);
       return null;
@@ -21,7 +24,10 @@ export class RecapGenerator {
       // Por ahora, crearemos un placeholder
       const mockRecapUri = 'mock://monthly-recap';
       
-      return await VideoStorage.saveRecap(mockRecapUri, 'monthly', year, month);
+      // return await VideoStorage.saveRecap(mockRecapUri, 'monthly', year, month);
+      // TODO: Implement actual video merging for monthly recaps
+      console.warn(`Skipping monthly recap generation for month ${month}, year ${year}: Video merging not implemented.`);
+      return null;
     } catch (error) {
       console.error('Error generating monthly recap:', error);
       return null;

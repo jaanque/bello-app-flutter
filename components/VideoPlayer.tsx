@@ -12,6 +12,8 @@ import { AVPlaybackStatus, Video, ResizeMode } from 'expo-av';
 import { VideoRecord } from '@/types/video';
 import { X, Share } from 'lucide-react-native';
 import * as Sharing from 'expo-sharing';
+import theme from '@/styles/theme'; // Import theme
+import * as Haptics from 'expo-haptics'; // Import Haptics
 
 interface VideoPlayerProps {
   video: VideoRecord | null;
@@ -24,7 +26,12 @@ export default function VideoPlayer({ video, visible, onClose }: VideoPlayerProp
 
   if (!video) return null;
 
-  const handleShare = async () => {
+  const triggerShareHaptics = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const handleSharePress = async () => {
+    triggerShareHaptics();
     try {
       const canShare = await Sharing.isAvailableAsync();
       if (canShare) {
@@ -39,6 +46,11 @@ export default function VideoPlayer({ video, visible, onClose }: VideoPlayerProp
       console.error('Error sharing video:', error);
       Alert.alert('Error', 'No se pudo compartir el video');
     }
+  };
+
+  const handleClosePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onClose();
   };
 
   const getTitle = () => {
@@ -69,20 +81,20 @@ export default function VideoPlayer({ video, visible, onClose }: VideoPlayerProp
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.closeButton}
-            onPress={onClose}
+            onPress={handleClosePress}
             activeOpacity={0.7}
           >
-            <X size={24} color="#fff" />
+            <X size={24} color={theme.colors.white} />
           </TouchableOpacity>
           
           <Text style={styles.title}>{getTitle()}</Text>
           
           <TouchableOpacity
             style={styles.shareButton}
-            onPress={handleShare}
+            onPress={handleSharePress}
             activeOpacity={0.7}
           >
-            <Share size={24} color="#fff" />
+            <Share size={24} color={theme.colors.white} />
           </TouchableOpacity>
         </View>
 
@@ -116,15 +128,16 @@ export default function VideoPlayer({ video, visible, onClose }: VideoPlayerProp
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: 'rgba(0, 0, 0, 0.85)', // Translucent background
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
     zIndex: 1,
+    // backgroundColor: 'rgba(0,0,0,0.3)' // Example if overlaying on content
   },
   closeButton: {
     width: 44,
@@ -133,9 +146,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-    color: '#fff',
+    ...theme.typography.textStyles.title2, // Using a title style
+    fontSize: theme.typography.fontSizes.lg, // Adjust size as needed
+    color: theme.colors.white,
     flex: 1,
     textAlign: 'center',
   },
@@ -155,20 +168,20 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   info: {
-    padding: 16,
+    padding: theme.spacing.md,
     alignItems: 'center',
   },
   dateText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#fff',
+    ...theme.typography.textStyles.body,
+    fontSize: theme.typography.fontSizes.sm,
+    color: theme.colors.white,
     textAlign: 'center',
     textTransform: 'capitalize',
+    marginBottom: theme.spacing.xs,
   },
   timeText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#999',
-    marginTop: 4,
+    ...theme.typography.textStyles.caption,
+    fontSize: theme.typography.fontSizes.xs,
+    color: theme.colors.mediumGray, // Lighter gray for secondary info
   },
 });

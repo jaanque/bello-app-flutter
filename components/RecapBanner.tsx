@@ -7,6 +7,8 @@ import {
 } from 'react-native';
 import { RecapVideo } from '@/types/video';
 import { Play, Share } from 'lucide-react-native';
+import theme from '@/styles/theme'; // Import theme
+import * as Haptics from 'expo-haptics'; // Import Haptics
 
 interface RecapBannerProps {
   recap: RecapVideo;
@@ -16,6 +18,16 @@ interface RecapBannerProps {
 
 export default function RecapBanner({ recap, onPlay, onShare }: RecapBannerProps) {
   const isWeekly = recap.recapType === 'weekly';
+
+  const handlePlay = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onPlay();
+  };
+
+  const handleShare = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onShare();
+  };
   
   const getTitle = () => {
     if (isWeekly) {
@@ -29,17 +41,14 @@ export default function RecapBanner({ recap, onPlay, onShare }: RecapBannerProps
     }
   };
 
+  // Use a single container style and adjust text colors based on theme
+  const titleColor = isWeekly ? theme.colors.primary : theme.colors.text; // Example: primary for weekly, black for monthly
+
   return (
-    <View style={[
-      styles.container,
-      isWeekly ? styles.weeklyContainer : styles.monthlyContainer
-    ]}>
+    <View style={styles.container}>
       <View style={styles.content}>
         <View style={styles.textContainer}>
-          <Text style={[
-            styles.title,
-            isWeekly ? styles.weeklyTitle : styles.monthlyTitle
-          ]}>
+          <Text style={[styles.title, { color: titleColor }]}>
             {getTitle()}
           </Text>
           <Text style={styles.subtitle}>
@@ -49,27 +58,19 @@ export default function RecapBanner({ recap, onPlay, onShare }: RecapBannerProps
         
         <View style={styles.actions}>
           <TouchableOpacity
-            style={[
-              styles.actionButton,
-              styles.playButton,
-              isWeekly ? styles.weeklyButton : styles.monthlyButton
-            ]}
-            onPress={onPlay}
-            activeOpacity={0.8}
+            style={styles.actionButton}
+            onPress={handlePlay}
+            activeOpacity={0.7} // Standard active opacity
           >
-            <Play size={16} color="#fff" />
+            <Play size={20} color={theme.colors.primary} />
           </TouchableOpacity>
           
           <TouchableOpacity
-            style={[
-              styles.actionButton,
-              styles.shareButton,
-              isWeekly ? styles.weeklyButton : styles.monthlyButton
-            ]}
-            onPress={onShare}
-            activeOpacity={0.8}
+            style={styles.actionButton}
+            onPress={handleShare}
+            activeOpacity={0.7} // Standard active opacity
           >
-            <Share size={16} color="#fff" />
+            <Share size={20} color={theme.colors.primary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -79,67 +80,53 @@ export default function RecapBanner({ recap, onPlay, onShare }: RecapBannerProps
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 16,
-    overflow: 'hidden',
+    marginHorizontal: theme.spacing.md,
+    marginVertical: theme.spacing.sm,
+    borderRadius: theme.radii.lg, // Larger radius for card feel
+    backgroundColor: theme.colors.white, // White card background
+    borderWidth: 1,
+    borderColor: theme.colors.mediumGray, // Subtle border
+    shadowColor: theme.colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05, // Very subtle shadow
+    shadowRadius: 4,
+    elevation: 3, // For Android
   },
-  weeklyContainer: {
-    backgroundColor: '#B794F6', // Lilas pastel
-  },
-  monthlyContainer: {
-    backgroundColor: '#F6E05E', // Dorado pastel
-  },
+  // Removed weeklyContainer and monthlyContainer as they are now unified
   content: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 20,
+    padding: theme.spacing.md, // Use theme spacing
   },
   textContainer: {
     flex: 1,
+    marginRight: theme.spacing.md, // Add margin to prevent text touching buttons
   },
   title: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  weeklyTitle: {
-    color: '#fff',
-  },
-  monthlyTitle: {
-    color: '#fff',
+    fontFamily: theme.typography.fonts.semiBold, // Use theme font
+    fontSize: theme.typography.fontSizes.lg,    // Use theme font size
+    // Color is now set dynamically inline
+    marginBottom: theme.spacing.xs,
   },
   subtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#fff',
+    fontFamily: theme.typography.fonts.regular, // Use theme font
+    fontSize: theme.typography.fontSizes.sm,     // Use theme font size
+    color: theme.colors.secondary,             // Use theme color for subtitle
     opacity: 0.9,
   },
   actions: {
     flexDirection: 'row',
-    gap: 12,
+    gap: theme.spacing.md, // Use theme spacing for gap
   },
   actionButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44, // Standard iOS tap target size
+    height: 44, // Standard iOS tap target size
+    borderRadius: theme.radii.full, // Circular buttons
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: theme.colors.lightGray, // Light gray background for buttons
+    // Removed specific weekly/monthly button styles
   },
-  playButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  shareButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  weeklyButton: {
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    borderWidth: 1,
-  },
-  monthlyButton: {
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    borderWidth: 1,
-  },
+  // Removed playButton, shareButton, weeklyButton, monthlyButton as styles are merged/simplified
 });

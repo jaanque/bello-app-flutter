@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { VideoRecord } from '@/types/video';
 import { Trash2, Play } from 'lucide-react-native';
+import theme from '@/styles/theme'; // Import theme
+import * as Haptics from 'expo-haptics'; // Import Haptics
 
 interface VideoGridProps {
   videos: VideoRecord[];
@@ -23,12 +25,18 @@ const GRID_SPACING = 8;
 const ITEM_WIDTH = (width - GRID_PADDING * 2 - GRID_SPACING * 2) / 3;
 
 export default function VideoGrid({ videos, onVideoPress, onDeleteVideo }: VideoGridProps) {
+  const handleVideoPress = (video: VideoRecord) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onVideoPress(video);
+  };
+
   const handleDeletePress = (video: VideoRecord) => {
     if (video.isRecap) {
       Alert.alert('No se puede eliminar', 'Los recaps no pueden eliminarse.');
       return;
     }
 
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); // Medium for destructive action alert
     Alert.alert(
       'Eliminar video',
       `¿Estás seguro de que quieres eliminar el video del ${video.date}?`,
@@ -60,24 +68,24 @@ export default function VideoGrid({ videos, onVideoPress, onDeleteVideo }: Video
           <View key={video.id} style={styles.videoItem}>
             <TouchableOpacity
               style={styles.videoTouchable}
-            onPress={() => onVideoPress(video)}
-            activeOpacity={0.8}
-          >
-            <View style={styles.thumbnail}>
+              onPress={() => handleVideoPress(video)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.thumbnail}>
               {video.thumbnailUrl ? (
                 <Image source={{ uri: video.thumbnailUrl }} style={styles.thumbnailImage} />
               ) : (
                 <View style={styles.thumbnailPlaceholder}>
-                  <Play size={24} color="#666" />
+                  <Play size={24} color={theme.colors.secondary} />
                 </View>
               )}
-              
-              <View style={styles.videoInfo}>
-                <Text style={styles.videoDate}>
-                  {new Date(video.date).getDate()}
-                </Text>
-                <Text style={styles.videoTime}>{video.time}</Text>
-              </View>
+
+                <View style={styles.videoInfo}>
+                  <Text style={styles.videoDate}>
+                    {new Date(video.date).getDate()}
+                  </Text>
+                  {/* <Text style={styles.videoTime}>{video.time}</Text> // Time might be too much detail for Apple Photos look */}
+                </View>
 
               {video.isRecap && (
                 <View style={[
@@ -98,7 +106,7 @@ export default function VideoGrid({ videos, onVideoPress, onDeleteVideo }: Video
               onPress={() => handleDeletePress(video)}
               activeOpacity={0.7}
             >
-              <Trash2 size={16} color="#ff4444" />
+                <Trash2 size={16} color={theme.colors.red} />
             </TouchableOpacity>
           )}
         </View>
@@ -113,30 +121,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     paddingHorizontal: GRID_PADDING,
-    justifyContent: 'space-between',
+    // Use justifyContent: 'flex-start' if you want items to align left if last row is not full
+    // justifyContent: 'space-between', // This can lead to uneven spacing if last row is not full
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: theme.spacing.xl,
   },
   emptyText: {
-    fontSize: 18,
-    fontFamily: 'Inter-Medium',
-    color: '#666',
+    ...theme.typography.textStyles.title2, // Using a title style for emphasis
+    color: theme.colors.text,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: theme.spacing.sm,
   },
   emptySubtext: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#999',
+    ...theme.typography.textStyles.body,
+    fontSize: theme.typography.fontSizes.sm,
+    color: theme.colors.secondary,
     textAlign: 'center',
   },
   videoItem: {
     width: ITEM_WIDTH,
-    marginBottom: 16,
+    marginBottom: GRID_SPACING, // Consistent spacing
+    marginHorizontal: GRID_SPACING / 2, // Add horizontal margin for spacing
     position: 'relative',
   },
   videoTouchable: {
@@ -144,9 +153,9 @@ const styles = StyleSheet.create({
   },
   thumbnail: {
     width: '100%',
-    aspectRatio: 1,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 12,
+    aspectRatio: 0.75, // Apple Photos often uses portrait-oriented thumbnails (e.g. 4:3 or similar)
+    backgroundColor: theme.colors.lightGray, // Use theme color
+    borderRadius: theme.radii.sm, // Slightly rounded corners
     overflow: 'hidden',
     position: 'relative',
   },
@@ -154,7 +163,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: theme.colors.mediumGray, // Use a slightly darker gray for placeholder
   },
   thumbnailImage: {
     width: '100%',
@@ -163,58 +172,55 @@ const styles = StyleSheet.create({
   },
   videoInfo: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    padding: 8,
+    bottom: theme.spacing.xs, // Small margin from bottom
+    left: theme.spacing.xs,   // Small margin from left
+    // No background, text shadow for legibility if needed (advanced)
   },
   videoDate: {
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
-    color: '#fff',
+    fontFamily: theme.typography.fonts.semiBold,
+    fontSize: theme.typography.fontSizes.sm, // Smaller font size
+    color: theme.colors.white, // Assuming dark thumbnails, white text
+    // Add text shadow for better legibility against varied backgrounds
+    textShadowColor: 'rgba(0, 0, 0, 0.7)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
-  videoTime: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#fff',
-    opacity: 0.8,
-  },
+  // videoTime removed for cleaner look, date is usually enough for grid view
   recapBadge: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    top: theme.spacing.xs,
+    right: theme.spacing.xs,
+    width: 20, // Smaller badge
+    height: 20, // Smaller badge
+    borderRadius: theme.radii.full, // Circular badge
     justifyContent: 'center',
     alignItems: 'center',
   },
   weeklyBadge: {
-    backgroundColor: '#B794F6', // Lilas pastel
+    backgroundColor: theme.colors.primary, // Use theme primary color
   },
   monthlyBadge: {
-    backgroundColor: '#F6E05E', // Dorado pastel
+    backgroundColor: '#FF9500', // Apple's orange accent
   },
   recapBadgeText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Bold',
-    color: '#fff',
+    fontFamily: theme.typography.fonts.bold,
+    fontSize: theme.typography.fontSizes.xs, // Smaller text
+    color: theme.colors.white,
   },
   deleteButton: {
     position: 'absolute',
-    top: -8,
-    right: -8,
-    width: 24,
-    height: 24,
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    top: theme.spacing.xs - 2,
+    right: theme.spacing.xs - 2 + GRID_SPACING / 2,
+    width: 28,
+    height: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: theme.radii.full,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowColor: theme.colors.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
+    elevation: 3,
   },
 });
